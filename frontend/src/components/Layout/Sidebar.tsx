@@ -24,14 +24,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                     lg:translate-x-0 lg:static
                 `}
             >
-                {/* Logo */}
                 <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <PackageOpen className="h-6 w-6 text-blue-600" />
                         <h1 className="text-xl font-bold text-gray-800">Machine Test</h1>
                     </div>
 
-                    {/* Close button (mobile only) */}
                     <button
                         className="lg:hidden text-gray-600"
                         onClick={() => setIsOpen(false)}
@@ -40,13 +38,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                     </button>
                 </div>
 
-                {/* Navigation */}
                 <nav className="flex-1 px-4 py-6 space-y-2">
                     {navigation.map((item) => (
                         <NavLink
                             key={item.name}
                             to={item.href}
-                            onClick={() => setIsOpen(false)} // Auto close on mobile
+                            onClick={() => setIsOpen(false)}
                             className={({ isActive }) =>
                                 `flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors ${isActive
                                     ? "bg-blue-50 text-blue-600 border-r-2 border-blue-600"

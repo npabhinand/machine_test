@@ -9,10 +9,10 @@ const Layout: React.FC = () => {
 
     return (
         <div className="flex h-screen bg-gray-100">
-            {/* Sidebar */}
+
             <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
 
-            {/* Main Content */}
+
             <div className="flex-1 flex flex-col overflow-hidden">
                 <Navbar setIsSidebarOpen={setIsSidebarOpen} />
                 <main className="flex-1 overflow-auto p-0 md:p-4">
@@ -20,9 +20,9 @@ const Layout: React.FC = () => {
                 </main>
             </div>
 
-            {/* Mobile Backdrop */}
+
             {isSidebarOpen && (
-                <div
+                <button
                     className="fixed inset-0 bg-black/40 lg:hidden z-20"
                     onClick={() => setIsSidebarOpen(false)}
                 />

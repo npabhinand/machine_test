@@ -144,7 +144,6 @@ export default function Contacts() {
         direction: 'asc'
     });
 
-    // Debounce effect
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(searchTerm);
@@ -170,17 +169,16 @@ export default function Contacts() {
         fetchData(`/contacts?${params}`);
     }, [currentPage, debouncedSearch, statusFilter, categoryFilter, sortConfig,]);
 
-    // Handle sort
+
     const handleSort = (key: string) => {
         setSortConfig(prevConfig => ({
             key,
             direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc'
         }));
-        // Reset to first page when sorting
         setCurrentPage(1);
     };
 
-    // handle select all contacts
+
     const handleSelectAll = (checked: boolean) => {
         if (checked && data?.contacts) {
             setSelectedContacts(new Set(data.contacts.map(contact => contact.id)));
@@ -189,7 +187,6 @@ export default function Contacts() {
         }
     };
 
-    // handle select each contact
     const handleSelectContact = (id: number | string) => {
         const numericId = Number(id);
         setSelectedContacts(prev => {
@@ -221,10 +218,9 @@ export default function Contacts() {
                 data: { ids }
             });
 
-            // Clear selection
             setSelectedContacts(new Set());
 
-            // Refresh contacts list
+
             const params = new URLSearchParams({
                 page: currentPage.toString(),
                 limit: itemsPerPage.toString(),
@@ -240,7 +236,6 @@ export default function Contacts() {
 
     const handleBulkExport = () => {
         if (selectedContacts.size > 0) {
-            // Implement bulk export logic
             console.log('Exporting contacts:', Array.from(selectedContacts));
         }
     };
@@ -265,7 +260,7 @@ export default function Contacts() {
             {/* Filter Container */}
             <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 mb-6">
                 <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-                    {/* Search Bar */}
+
                     <div className="w-full lg:w-auto flex-1">
                         <div className="relative max-w-md">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 sm:w-5 sm:h-5" />
@@ -323,8 +318,8 @@ export default function Contacts() {
 
             {/* Contacts Table */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                {/* Desktop Table */}
-                <div className="lg:block overflow-x-auto">
+
+                <div className="overflow-x-auto">
                     <CommonTable
                         data={data?.contacts || []}
                         columns={contactColumns(sortConfig, handleSort)}

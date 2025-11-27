@@ -22,7 +22,6 @@ export const Navbar: React.FC<NavbarProps> = ({ setIsSidebarOpen }) => {
 
     return (
         <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-4 lg:px-6">
-            {/* Hamburger (mobile only) */}
             <button
                 className="lg:hidden mr-4 text-gray-700"
                 onClick={() => setIsSidebarOpen(true)}
