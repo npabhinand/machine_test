@@ -28,7 +28,7 @@ npm install
 # 4. Start both services (in separate terminals)
 # Terminal 1 - Backend
 cd backend
-npm server.js
+node server.js
 
 # Terminal 2 - Frontend
 cd frontend
