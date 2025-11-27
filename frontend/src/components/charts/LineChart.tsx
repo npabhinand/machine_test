@@ -1,14 +1,9 @@
 import React from 'react'
 import { CartesianGrid, Legend, Line, ResponsiveContainer, Tooltip, XAxis, YAxis, LineChart } from 'recharts'
 
-interface ChartItem {
-    date: string
-    searchResults: number
-}
+import type { LineChartProps } from '../../types'
 
-interface LineChartProps {
-    data: ChartItem[]
-}
+
 
 const LineChartComponent: React.FC<LineChartProps> = ({ data }) => {
     return (

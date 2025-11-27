@@ -1,17 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, MoreVertical, User, Mail, Phone, } from 'lucide-react';
+import { Search, Download, MoreVertical, User, Mail, Phone, ChevronUp, ChevronDown } from 'lucide-react';
+
+// utils
 import useNetworkRequest from '../hooks/useNetworkRequest';
 import type { Contact } from '../types';
+// components
 import Pagination from '../components/Pagination';
 import ConfirmModal from '../components/ConfirmModal';
 import CommonTable from '../components/CommonTable';
 import SelectTab from '../components/SelectTab';
+import { categoryOptions, statusOptions } from '../data/data';
+import NotFound from '../components/NotFound';
+import { contactsErrorMessage } from '../utils/constants';
 
+interface SortConfig {
+    key: string;
+    direction: 'asc' | 'desc';
+}
 
-const contactColumns = [
+const contactColumns = (sortConfig: SortConfig, handleSort: (key: string) => void) => [
     {
         key: "contact",
         header: "Contact",
+        sortable: true,
         render: (_: unknown, row: Contact) => (
             <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -27,8 +38,9 @@ const contactColumns = [
     {
         key: "company",
         header: "Company & Position",
+        sortable: true,
         render: (_: unknown, row: Contact) => (
-            <div>
+            <div className='min-w-[200px]'>
                 <div className="font-medium text-gray-900">{row.company}</div>
                 <div className="text-sm text-gray-500">{row.position}</div>
             </div>
@@ -37,6 +49,7 @@ const contactColumns = [
     {
         key: "contactInfo",
         header: "Contact Info",
+        sortable: false,
         render: (_: unknown, row: Contact) => (
             <div className="space-y-1">
                 <div className="flex items-center gap-2 text-sm">
@@ -53,6 +66,7 @@ const contactColumns = [
     {
         key: "status",
         header: "Status",
+        sortable: true,
         render: (_: unknown, row: Contact) => (
             <span
                 className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${row.status === "Active"
@@ -67,6 +81,7 @@ const contactColumns = [
     {
         key: "category",
         header: "Category",
+        sortable: true,
         render: (_: unknown, row: Contact) => (
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                 {row.category}
@@ -76,6 +91,7 @@ const contactColumns = [
     {
         key: "lastContact",
         header: "Last Contact",
+        sortable: true,
         render: (_: unknown, row: Contact) => (
             <span className="text-sm text-gray-500">
                 {new Date(row.lastContact).toLocaleDateString()}
@@ -85,28 +101,36 @@ const contactColumns = [
     {
         key: "actions",
         header: "",
-
+        sortable: false,
         render: () => (
             <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
                 <MoreVertical className="w-4 h-4 text-gray-400" />
             </button>
         ),
     },
-];
-const statusOptions = [
-    { label: 'All Status', value: 'all' },
-    { label: 'Active', value: 'Active' },
-    { label: 'Inactive', value: 'Inactive' },
-];
-const categoryOptions = [
-    { label: 'All Categories', value: 'all' },
-    { label: 'Work', value: 'Work' },
-    { label: 'Personal', value: 'Personal' },
-    { label: 'Business', value: 'Business' },
-];
+].map(column => ({
+    ...column,
+    renderHeader: () => (
+        <button
+            onClick={() => column.sortable && handleSort(column.key)}
+            className={`flex items-center gap-1 font-semibold text-gray-700 ${column.sortable ? 'hover:text-gray-900 cursor-pointer' : 'cursor-default'
+                }`}
+        >
+            {column.header}
+            {(
+                sortConfig.direction === 'asc' ? (
+                    <ChevronUp className="w-4 h-4" />
+                ) : (
+                    <ChevronDown className="w-4 h-4" />
+                )
+            )}
+        </button>
+    )
+}));
 
 export default function Contacts() {
     const { data, error, fetchData } = useNetworkRequest<{ contacts: Contact[]; total: number }>();
+
     const [selectedContacts, setSelectedContacts] = useState<Set<number>>(new Set());
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('all');
@@ -115,36 +139,51 @@ export default function Contacts() {
     const [itemsPerPage] = useState(10);
     const [confirmOpen, setConfirmOpen] = useState(false);
     const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+    const [sortConfig, setSortConfig] = useState<SortConfig>({
+        key: 'name',
+        direction: 'asc'
+    });
 
     // Debounce effect
     useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(searchTerm);
-        }, 500); // 500ms debounce
+        }, 500);
 
         return () => {
             clearTimeout(handler);
         };
     }, [searchTerm]);
 
-    // Fetch when page, filters, or debounced search changes
+    // Fetch when page, filters, sort, or debounced search changes
     useEffect(() => {
         const params = new URLSearchParams({
             page: currentPage.toString(),
             limit: itemsPerPage.toString(),
+            sortBy: sortConfig.key,
+            sortOrder: sortConfig.direction,
             ...(debouncedSearch && { search: debouncedSearch }),
             ...(statusFilter !== 'all' && { status: statusFilter }),
             ...(categoryFilter !== 'all' && { category: categoryFilter }),
         });
 
         fetchData(`/contacts?${params}`);
-    }, [currentPage, debouncedSearch, statusFilter, categoryFilter]);
+    }, [currentPage, debouncedSearch, statusFilter, categoryFilter, sortConfig,]);
+
+    // Handle sort
+    const handleSort = (key: string) => {
+        setSortConfig(prevConfig => ({
+            key,
+            direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc'
+        }));
+        // Reset to first page when sorting
+        setCurrentPage(1);
+    };
 
     // handle select all contacts
     const handleSelectAll = (checked: boolean) => {
         if (checked && data?.contacts) {
             setSelectedContacts(new Set(data.contacts.map(contact => contact.id)));
-
         } else {
             setSelectedContacts(new Set());
         }
@@ -163,12 +202,14 @@ export default function Contacts() {
             return newSet;
         });
     };
-    // toconfirm Delete
+
+    // to confirm Delete
     const openBulkDeleteConfirm = () => {
         if (selectedContacts.size > 0) {
             setConfirmOpen(true);
         }
     };
+
     // handle delete
     const handleBulkDelete = async () => {
         const ids = Array.from(selectedContacts);
@@ -184,14 +225,18 @@ export default function Contacts() {
             setSelectedContacts(new Set());
 
             // Refresh contacts list
-            fetchData(`/contacts?page=${currentPage}&limit=${itemsPerPage}`);
-            setConfirmOpen(false)
+            const params = new URLSearchParams({
+                page: currentPage.toString(),
+                limit: itemsPerPage.toString(),
+                sortBy: sortConfig.key,
+                sortOrder: sortConfig.direction,
+            });
+            fetchData(`/contacts?${params}`);
+            setConfirmOpen(false);
         } catch (err) {
             console.error("Bulk delete failed:", err);
         }
     };
-
-
 
     const handleBulkExport = () => {
         if (selectedContacts.size > 0) {
@@ -202,24 +247,12 @@ export default function Contacts() {
 
     const totalPages = data ? Math.ceil(data.total / itemsPerPage) : 0;
 
+    // if error occurs show NotFound component
     if (error) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="text-red-500 text-6xl mb-4">⚠️</div>
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Failed to Load Contacts</h2>
-                    <p className="text-gray-600 mb-4">Please try again.</p>
-                    <button
-                        onClick={() => window.location.reload()}
-                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-                    >
-                        Retry
-                    </button>
-                </div>
-            </div>
+            <NotFound title={contactsErrorMessage} />
         );
     }
-
 
     return (
         <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
@@ -228,7 +261,6 @@ export default function Contacts() {
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Contacts</h1>
                 <p className="text-gray-600">Manage your contacts and their information</p>
             </div>
-
 
             {/* Filter Container */}
             <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-gray-200 mb-6">
@@ -255,7 +287,12 @@ export default function Contacts() {
                         <SelectTab value={categoryFilter} setState={setCategoryFilter} options={categoryOptions} />
                     </div>
 
-                    {/* Bulk Actions */}
+                    {/* Sort Info */}
+                    <div className="text-sm text-gray-500 hidden lg:block">
+                        Sorted by: <span className="font-medium capitalize">{sortConfig.key}</span> ({sortConfig.direction})
+                    </div>
+
+                    {/*  Actions */}
                     {selectedContacts.size > 0 && (
                         <div className="flex gap-2 w-full lg:w-auto">
                             <button
@@ -290,20 +327,24 @@ export default function Contacts() {
                 <div className="lg:block overflow-x-auto">
                     <CommonTable
                         data={data?.contacts || []}
-                        columns={contactColumns}
+                        columns={contactColumns(sortConfig, handleSort)}
                         selectable={true}
                         selectedRows={selectedContacts}
                         onSelectRow={handleSelectContact}
                         onSelectAll={handleSelectAll}
                     />
-
                 </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <Pagination setCurrentPage={setCurrentPage} currentPage={currentPage}
-                        itemsPerPage={itemsPerPage} data={data} totalPages={totalPages} />)}
-
+                    <Pagination
+                        setCurrentPage={setCurrentPage}
+                        currentPage={currentPage}
+                        itemsPerPage={itemsPerPage}
+                        data={data}
+                        totalPages={totalPages}
+                    />
+                )}
             </div>
         </div>
     );

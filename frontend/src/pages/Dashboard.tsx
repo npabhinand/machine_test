@@ -2,14 +2,16 @@ import { useEffect, useState } from "react";
 import { Contact, EyeIcon, Search, } from "lucide-react";
 
 import useNetworkRequest from "../hooks/useNetworkRequest";
-import { pieColors } from "../utils/constants";
-
+import { dashBoardErrorMessage, pieColors } from "../utils/constants";
+import type { ActiveContactRs2Type, ChartRs1Type, ChartRs2Type } from "../types";
+// components
 import Loader from "../components/Loader";
 import PieChartComponent from "../components/charts/PieChart";
 import CardContainer from "../components/CardContainer";
 import LineChartComponent from "../components/charts/LineChart";
-import type { ActiveContactRs2Type, ChartRs1Type, ChartRs2Type } from "../types";
+
 import CommonTable from "../components/CommonTable";
+import NotFound from "../components/NotFound";
 
 export default function Dashboard() {
     const {
@@ -128,6 +130,13 @@ export default function Dashboard() {
             ),
         },
     ];
+
+    if (activeError || chartError) {
+        return (
+            <NotFound title={dashBoardErrorMessage} />
+        );
+    }
+
     return (
         <div className="space-y-8 p-3 md:p-6">
             {/* Page Header */}
@@ -182,7 +191,7 @@ export default function Dashboard() {
             {/* Property Views Widget */}
             <section className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden w-full">
                 {/* Header */}
-                <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
+                <div className="p-6 border-b border-gray-200 bg-linear-to-r from-green-50 to-emerald-50">
                     <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
                         <span className="w-2 h-2 bg-green-600 rounded-full"></span>
                         Property Views Trend

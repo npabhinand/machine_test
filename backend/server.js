@@ -141,20 +141,43 @@ app.get('/contacts', (req, res) => {
     return matchesSearch && matchesStatus && matchesCategory;
   });
 
-  // Sort contacts
+  // Enhanced sorting logic
   filteredContacts.sort((a, b) => {
     let aValue = a[sortBy];
     let bValue = b[sortBy];
 
+    // Handle nested properties for contact column
+    if (sortBy === 'contact') {
+      aValue = a.name;
+      bValue = b.name;
+    }
+    
+    // Handle nested properties for company column
+    if (sortBy === 'company') {
+      aValue = a.company;
+      bValue = b.company;
+    }
+
+    // Handle date sorting for lastContact
+    if (sortBy === 'lastContact') {
+      aValue = new Date(aValue).getTime();
+      bValue = new Date(bValue).getTime();
+    }
+
+    // Handle string comparison
     if (typeof aValue === 'string') {
       aValue = aValue.toLowerCase();
       bValue = bValue.toLowerCase();
     }
 
+    // Handle undefined/null values
+    if (aValue === undefined || aValue === null) aValue = '';
+    if (bValue === undefined || bValue === null) bValue = '';
+
     if (sortOrder === 'asc') {
-      return aValue > bValue ? 1 : -1;
+      return aValue > bValue ? 1 : aValue < bValue ? -1 : 0;
     } else {
-      return aValue < bValue ? 1 : -1;
+      return aValue < bValue ? 1 : aValue > bValue ? -1 : 0;
     }
   });
 
@@ -168,7 +191,9 @@ app.get('/contacts', (req, res) => {
     total: filteredContacts.length,
     page,
     limit,
-    totalPages: Math.ceil(filteredContacts.length / limit)
+    totalPages: Math.ceil(filteredContacts.length / limit),
+    sortBy,
+    sortOrder
   });
 });
 

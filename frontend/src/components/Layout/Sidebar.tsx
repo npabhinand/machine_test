@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { Users, LayoutDashboard, Menu } from "lucide-react";
+import { Users, LayoutDashboard, Menu, PackageOpen } from "lucide-react";
 
 interface SidebarProps {
     isOpen: boolean;
@@ -27,7 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                 {/* Logo */}
                 <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <Menu className="h-6 w-6 text-blue-600" />
+                        <PackageOpen className="h-6 w-6 text-blue-600" />
                         <h1 className="text-xl font-bold text-gray-800">Machine Test</h1>
                     </div>
 
