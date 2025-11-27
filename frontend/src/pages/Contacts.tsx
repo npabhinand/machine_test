@@ -185,7 +185,7 @@ export default function Contacts() {
 
             // Refresh contacts list
             fetchData(`/contacts?page=${currentPage}&limit=${itemsPerPage}`);
-
+            setConfirmOpen(false)
         } catch (err) {
             console.error("Bulk delete failed:", err);
         }
